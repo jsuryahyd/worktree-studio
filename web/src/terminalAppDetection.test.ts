@@ -51,4 +51,10 @@ describe("detectTerminalApp", () => {
       label: "Claude",
     });
   });
+
+  it("detects agy from titles containing agy or Antigravity", () => {
+    expect(detectTerminalApp("agy")).toEqual({ kind: "agy", label: "agy" });
+    expect(detectTerminalApp("AGY session")).toEqual({ kind: "agy", label: "agy" });
+    expect(detectTerminalApp("Antigravity Agent")).toEqual({ kind: "agy", label: "agy" });
+  });
 });

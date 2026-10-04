@@ -69,6 +69,26 @@ describe("WorktreeAuditLog", () => {
     expect(getWorktreeAuditLog).toHaveBeenCalledWith("r1", "w1");
   });
 
+  it("renders agy.session.create event with friendly label and resume button", async () => {
+    vi.mocked(getWorktreeAuditLog).mockResolvedValue([
+      {
+        ts: "2026-01-02T00:00:00Z",
+        event: "agy.session.create",
+        worktree_id: "w1",
+        agy_session_id: "conv-456",
+        title: "my agy task",
+      },
+    ]);
+
+    renderLog();
+
+    const items = await screen.findAllByRole("listitem");
+    expect(items).toHaveLength(1);
+    expect(within(items[0]).getByText("agy session started")).toBeInTheDocument();
+    expect(items[0].querySelector(".audit-log-summary")?.textContent).toMatch(/my agy task/);
+    expect(within(items[0]).getByRole("button", { name: "Resume" })).toBeInTheDocument();
+  });
+
   it("renders claude.session.create and archive/unarchive events with friendly labels", async () => {
     vi.mocked(getWorktreeAuditLog).mockResolvedValue([
       {

@@ -25,6 +25,7 @@ export const AUDIT_EVENTS = [
   "spotlight.stop",
   "claude.session.create",
   "claude.session.context",
+  "agy.session.create",
   "file.write",
   "orphan_tmux.kill",
 ] as const;
