@@ -8,9 +8,11 @@ import (
 	"io"
 	"io/fs"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -38,6 +40,35 @@ func addrPort(addr string) string {
 		return addr[i:]
 	}
 	return ":" + addr
+}
+
+// maxPortTries bounds how far past the requested port listenFirstFree looks.
+const maxPortTries = 20
+
+// listenFirstFree listens on addr, and if that port is taken tries the next
+// port up (logging each one it skips), up to maxPortTries ports. It returns
+// the listener plus the address actually bound, so callers build URLs from
+// that rather than the requested addr.
+func listenFirstFree(addr string, logger *slog.Logger) (net.Listener, string, error) {
+	host, portStr, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, "", err
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return nil, "", err
+	}
+	var lastErr error
+	for i := 0; i < maxPortTries; i++ {
+		try := net.JoinHostPort(host, strconv.Itoa(port+i))
+		ln, err := net.Listen("tcp", try)
+		if err == nil {
+			return ln, try, nil
+		}
+		lastErr = err
+		logger.Warn("port unavailable, trying next", "addr", try, "err", err)
+	}
+	return nil, "", fmt.Errorf("no free port in %d tries from %s: %w", maxPortTries, addr, lastErr)
 }
 
 // logFilePath returns ~/.worktree-studio/server.log — this process's own
@@ -156,6 +187,12 @@ func main() {
 		addr = v
 	}
 
+	ln, addr, err := listenFirstFree(addr, logger)
+	if err != nil {
+		logger.Error("no free port", "err", err)
+		os.Exit(1)
+	}
+
 	srv := &api.Server{
 		Store:        st,
 		Audit:        al,
@@ -206,7 +243,7 @@ func main() {
 	mountFrontend(r, logger)
 
 	logger.Info("worktree-studio listening", "addr", addr)
-	if err := http.ListenAndServe(addr, r); err != nil {
+	if err := http.Serve(ln, r); err != nil {
 		logger.Error("server exited", "err", err)
 		os.Exit(1)
 	}

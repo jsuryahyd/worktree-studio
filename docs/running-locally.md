@@ -28,7 +28,7 @@ go build -o worktree-studio ./cmd/worktree-studio
 ./worktree-studio
 ```
 
-Server listens on `:8787` by default (override with `WORKTREE_STUDIO_ADDR=:9000 ./worktree-studio`). Open `http://localhost:8787/`.
+Server listens on `:8787` by default (change the starting port with `WORKTREE_STUDIO_ADDR=:9000 ./worktree-studio`). If that port is taken it logs each unavailable port and tries the next one up (20 tries), then logs the address it actually bound — check the `worktree-studio listening` line. Note the CLI subcommands, the installed hooks and the Vite proxy (`web/vite.config.ts`) still assume the starting port, so they only find a server that landed on it.
 
 If you run `go build` **before** ever building the frontend, it still succeeds — `web/dist/` ships with a placeholder file so the `go:embed` directive always has something to embed, and the server serves a small "run `bun run build`" page instead of crashing. This lets a fresh checkout compile immediately; you only need the frontend built to get the real UI.
 

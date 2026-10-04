@@ -12,7 +12,7 @@ Production-style (single Go binary serving the built frontend):
 cd web && bun install && bun run build   # builds web/dist, embedded into the binary
 cd ..
 go build -o worktree-studio ./cmd/worktree-studio
-./worktree-studio            # serves on http://localhost:8787
+./worktree-studio            # serves on http://localhost:8787 (next free port if taken — see the startup log)
 ```
 
 Frontend dev mode (hot reload, proxies `/api` to the Go server):
