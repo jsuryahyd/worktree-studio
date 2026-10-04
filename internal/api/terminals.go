@@ -111,6 +111,8 @@ type createTerminalRequest struct {
 	// worktree even after the tab/session that started it is long gone.
 	ClaudeSessionID    string `json:"claude_session_id"`
 	ClaudeSessionTitle string `json:"claude_session_title"`
+	AgySessionID       string `json:"agy_session_id"`
+	AgySessionTitle    string `json:"agy_session_title"`
 }
 
 func (s *Server) handleCreateTerminal(w http.ResponseWriter, r *http.Request) {
@@ -142,6 +144,15 @@ func (s *Server) handleCreateTerminal(w http.ResponseWriter, r *http.Request) {
 			"terminal_id":       ts.ID,
 			"claude_session_id": req.ClaudeSessionID,
 			"title":             req.ClaudeSessionTitle,
+		})
+	}
+	if req.AgySessionID != "" {
+		s.auditLog(audit.EventAgySessionCreate, map[string]any{
+			"repo_id":        wt.RepoID,
+			"worktree_id":    wt.ID,
+			"terminal_id":    ts.ID,
+			"agy_session_id": req.AgySessionID,
+			"title":          req.AgySessionTitle,
 		})
 	}
 

@@ -53,6 +53,8 @@ const (
 	EventClaudeSessionCreate  Event = "claude.session.create"
 	EventClaudeSessionContext Event = "claude.session.context"
 
+	EventAgySessionCreate Event = "agy.session.create"
+
 	EventFileWrite Event = "file.write"
 
 	// EventOrphanTmuxKill records a kill made by the `worktree-studio

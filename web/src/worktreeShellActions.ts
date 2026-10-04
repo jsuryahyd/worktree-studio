@@ -47,8 +47,14 @@ export function openShellWithClaude(navigate: NavigateFunction, repoId: string, 
   openTerminal(navigate, repoId, worktreeId, "claude", "claude");
 }
 
-// claude session ids are either this app's own crypto.randomUUID() or
-// whatever Claude Code's own hook payload reports — always UUID-shaped in
+/** Opens a shell running a fresh `agy` — same as the dockview
+ * watermark's "Open agy" button. */
+export function openShellWithAgy(navigate: NavigateFunction, repoId: string, worktreeId: string) {
+  openTerminal(navigate, repoId, worktreeId, "agy", "agy");
+}
+
+// claude/agy session ids are either this app's own crypto.randomUUID() or
+// whatever the CLI payload reports — always UUID/slug-shaped in
 // practice, never free text. initialCommand ends up literally typed into
 // a live shell via `tmux send-keys` (see internal/term), not passed as a
 // safe exec argv, so this is a real (if narrow) guardrail: refuse to
@@ -71,6 +77,18 @@ export function openShellWithClaudeResume(
 ) {
   if (!SESSION_ID_PATTERN.test(sessionId)) return;
   openTerminal(navigate, repoId, worktreeId, "claude (resumed)", `claude --resume ${sessionId}`);
+}
+
+/** Opens a shell that resumes an existing agy session by conversation ID
+ * (`agy --conversation <sessionId>`). */
+export function openShellWithAgyResume(
+  navigate: NavigateFunction,
+  repoId: string,
+  worktreeId: string,
+  sessionId: string
+) {
+  if (!SESSION_ID_PATTERN.test(sessionId)) return;
+  openTerminal(navigate, repoId, worktreeId, "agy (resumed)", `agy --conversation ${sessionId}`);
 }
 
 /** Switches to an already-open terminal panel by id — e.g. a

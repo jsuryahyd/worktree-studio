@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuditLogEntry, getClaudeSessionTitle, getWorktreeAuditLog, listTerminalsForRepo } from "./api";
 import { AuditEventType } from "./auditEvents";
-import { focusTerminalTab, openShellWithClaudeResume } from "./worktreeShellActions";
+import { focusTerminalTab, openShellWithAgyResume, openShellWithClaudeResume } from "./worktreeShellActions";
 
 interface Props {
   repoId: string;
@@ -37,6 +37,7 @@ const EVENT_LABELS: Record<AuditEventType, { icon: string; label: string }> = {
   "spotlight.stop": { icon: "🔦", label: "Spotlight stopped" },
   "claude.session.create": { icon: "🤖", label: "Claude session started" },
   "claude.session.context": { icon: "🗿", label: "Context injected into Claude" },
+  "agy.session.create": { icon: "🤖", label: "agy session started" },
   "file.write": { icon: "📝", label: "File saved" },
   // Never actually shown here either — same reason as repo.add above: an
   // orphan tmux session by definition has no terminal_sessions row, so
@@ -73,9 +74,63 @@ function summarize(entry: AuditLogEntry, realTitles: Record<string, string | nul
       const label = real ?? (typeof entry.title === "string" ? entry.title : undefined);
       return label ? `${label} (${id})` : id;
     }
+    case "agy.session.create": {
+      const id = entry.agy_session_id;
+      if (typeof id !== "string") return null;
+      const label = typeof entry.title === "string" ? entry.title : undefined;
+      return label ? `${label} (${id})` : id;
+    }
     default:
       return null;
   }
+}
+
+function AgySessionAction({
+  repoId,
+  worktreeId,
+  sessionId,
+  terminalId,
+  liveTerminalIds,
+  navigate,
+  onDone,
+}: {
+  repoId: string;
+  worktreeId: string;
+  sessionId: string;
+  terminalId: string | undefined;
+  liveTerminalIds: Set<string>;
+  navigate: ReturnType<typeof useNavigate>;
+  onDone: () => void;
+}) {
+  const isLive = terminalId !== undefined && liveTerminalIds.has(terminalId);
+
+  if (isLive) {
+    return (
+      <button
+        type="button"
+        className="audit-log-action"
+        onClick={() => {
+          focusTerminalTab(navigate, repoId, worktreeId, terminalId!);
+          onDone();
+        }}
+      >
+        Focus
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      className="audit-log-action"
+      onClick={() => {
+        openShellWithAgyResume(navigate, repoId, worktreeId, sessionId);
+        onDone();
+      }}
+    >
+      Resume
+    </button>
+  );
 }
 
 // The button on a claude.session.create entry: "Focus" if this exact
@@ -246,6 +301,17 @@ export default function WorktreeAuditLog({ repoId, worktreeId, title, onClose }:
                         repoId={repoId}
                         worktreeId={worktreeId}
                         sessionId={e.claude_session_id}
+                        terminalId={typeof e.terminal_id === "string" ? e.terminal_id : undefined}
+                        liveTerminalIds={liveTerminalIds}
+                        navigate={navigate}
+                        onDone={onClose}
+                      />
+                    )}
+                    {e.event === "agy.session.create" && typeof e.agy_session_id === "string" && (
+                      <AgySessionAction
+                        repoId={repoId}
+                        worktreeId={worktreeId}
+                        sessionId={e.agy_session_id}
                         terminalId={typeof e.terminal_id === "string" ? e.terminal_id : undefined}
                         liveTerminalIds={liveTerminalIds}
                         navigate={navigate}

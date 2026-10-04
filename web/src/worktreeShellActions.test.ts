@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { registerActiveWorktreeActions } from "./activeWorktreeActions";
 import { takePendingNewTerminal } from "./pendingNewTerminal";
-import { focusTerminalTab, openShell, openShellWithClaude, openShellWithClaudeResume } from "./worktreeShellActions";
+import { focusTerminalTab, openShell, openShellWithAgy, openShellWithAgyResume, openShellWithClaude, openShellWithClaudeResume } from "./worktreeShellActions";
 
 afterEach(() => {
   registerActiveWorktreeActions(null);
 });
 
-describe("openShell/openShellWithClaude", () => {
+describe("openShell/openShellWithClaude/openShellWithAgy", () => {
   it("acts directly through the active bridge when the target worktree is already mounted", () => {
     const newTerminal = vi.fn();
     registerActiveWorktreeActions({
@@ -29,6 +29,10 @@ describe("openShell/openShellWithClaude", () => {
     openShellWithClaude(navigate, "r1", "w1");
     expect(newTerminal).toHaveBeenCalledWith("claude", "claude");
     expect(navigate).not.toHaveBeenCalled();
+
+    openShellWithAgy(navigate, "r1", "w1");
+    expect(newTerminal).toHaveBeenCalledWith("agy", "agy");
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it("navigates and leaves a pending instruction when the target worktree isn't mounted", () => {
@@ -43,6 +47,13 @@ describe("openShell/openShellWithClaude", () => {
     openShellWithClaude(navigate, "r1", "w3");
     expect(navigate).toHaveBeenCalledWith("/repo/r1/worktree/w3");
     expect(takePendingNewTerminal("w3")).toEqual({ tabLabel: "claude", initialCommand: "claude" });
+  });
+
+  it("navigates and leaves an agy-tagged pending instruction for openShellWithAgy when not mounted", () => {
+    const navigate = vi.fn();
+    openShellWithAgy(navigate, "r1", "w3");
+    expect(navigate).toHaveBeenCalledWith("/repo/r1/worktree/w3");
+    expect(takePendingNewTerminal("w3")).toEqual({ tabLabel: "agy", initialCommand: "agy" });
   });
 
   it("only ever acts on the bridge when the worktree id actually matches", () => {
@@ -62,6 +73,18 @@ describe("openShell/openShellWithClaude", () => {
     openShell(navigate, "r1", "w4");
     expect(newTerminal).not.toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith("/repo/r1/worktree/w4");
+  });
+});
+
+describe("openShellWithAgyResume", () => {
+  it("builds an agy --conversation <id> command", () => {
+    const navigate = vi.fn();
+    openShellWithAgyResume(navigate, "r1", "w5", "session-abc-123");
+    expect(navigate).toHaveBeenCalledWith("/repo/r1/worktree/w5");
+    expect(takePendingNewTerminal("w5")).toEqual({
+      tabLabel: "agy (resumed)",
+      initialCommand: "agy --conversation session-abc-123",
+    });
   });
 });
 

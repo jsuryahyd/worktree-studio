@@ -28,6 +28,7 @@ import FileTree from "./FileTree";
 import EditorPanel, { EditorPanelParams } from "./EditorPanel";
 import { useRepoContext } from "./RepoContext";
 import ClaudeIcon from "./icons/ClaudeIcon";
+import AgyIcon from "./icons/AgyIcon";
 import { PanelSideIcon } from "./icons/FileTreeIcons";
 import { registerActiveFileOpener } from "./activeWorktreeFileOpener";
 import { takePendingFileOpen } from "./pendingFileOpen";
@@ -75,6 +76,7 @@ interface TerminalPanelParams {
 // are how this grows to cover more "persisting" apps beyond claude later.
 const TERMINAL_APP_ICONS: Record<TerminalAppKind, (props: { size?: number }) => JSX.Element> = {
   claude: ClaudeIcon,
+  agy: AgyIcon,
 };
 
 // A thin wrapper so dockview can host the existing Terminal component as a
@@ -184,6 +186,7 @@ const DockviewActionsContext = createContext<{
   worktreeId: string;
   onOpenShell: () => void;
   onOpenClaude: () => void;
+  onOpenAgy: () => void;
 } | null>(null);
 
 // How many past-session cards the welcome screen shows at once — a
@@ -236,6 +239,9 @@ function Watermark() {
           </button>
           <button type="button" onClick={actions.onOpenClaude}>
             Open claude
+          </button>
+          <button type="button" onClick={actions.onOpenAgy}>
+            Open agy
           </button>
         </div>
       )}
@@ -925,6 +931,7 @@ function WorktreeDetailInner({ repoId, worktreeId }: { repoId: string; worktreeI
               worktreeId,
               onOpenShell: () => handleNewTerminal("within"),
               onOpenClaude: () => handleNewTerminal("within", "claude", "claude"),
+              onOpenAgy: () => handleNewTerminal("within", "agy", "agy"),
             }}
           >
             <DockviewReact

@@ -27,7 +27,7 @@
 // the plan is to cover more "persisting" interactive apps the same way
 // later (this is where a new entry goes), while WorktreeDetail.tsx keeps
 // the actual icon components out of this framework-free module.
-export type TerminalAppKind = "claude";
+export type TerminalAppKind = "claude" | "agy";
 
 interface TerminalAppSignature {
   kind: TerminalAppKind;
@@ -45,6 +45,12 @@ const SIGNATURES: TerminalAppSignature[] = [
     kind: "claude",
     label: "Claude",
     matches: (title) => title.includes("Claude Code") || CLAUDE_STATUS_GLYPH.test(title),
+  },
+  {
+    kind: "agy",
+    label: "agy",
+    matches: (title) =>
+      title.includes("agy") || title.includes("Antigravity") || title.includes("AGY"),
   },
 ];
 

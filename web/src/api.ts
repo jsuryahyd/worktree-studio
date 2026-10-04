@@ -283,7 +283,9 @@ export function createTerminal(
   tabLabel?: string,
   initialCommand?: string,
   claudeSessionId?: string,
-  claudeSessionTitle?: string
+  claudeSessionTitle?: string,
+  agySessionId?: string,
+  agySessionTitle?: string
 ): Promise<TerminalSession> {
   return request<TerminalSession>(
     `/api/repos/${repoId}/worktrees/${worktreeId}/terminals/`,
@@ -294,6 +296,8 @@ export function createTerminal(
         initial_command: initialCommand,
         claude_session_id: claudeSessionId,
         claude_session_title: claudeSessionTitle,
+        agy_session_id: agySessionId,
+        agy_session_title: agySessionTitle,
       }),
     }
   );

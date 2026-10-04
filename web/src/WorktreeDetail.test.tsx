@@ -408,6 +408,17 @@ describe("WorktreeDetail", () => {
     );
   });
 
+  it("empty-state watermark's 'Open agy' button creates an agy terminal", async () => {
+    vi.mocked(listTerminals).mockResolvedValue([]);
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByRole("button", { name: "Open agy" }));
+    await waitFor(() =>
+      expect(createTerminal).toHaveBeenCalledWith("r1", "w1", "agy", "agy")
+    );
+  });
+
   it("empty-state watermark's 'Open shell' button creates a plain terminal", async () => {
     vi.mocked(listTerminals).mockResolvedValue([]);
     const user = userEvent.setup();
